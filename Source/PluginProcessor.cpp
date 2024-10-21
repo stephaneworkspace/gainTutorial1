@@ -21,13 +21,15 @@ GainTutorial1AudioProcessor::GainTutorial1AudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
+treeState(*this, nullptr, "PARAMETERS", { std::make_unique<juce::AudioParameterFloat>(GAIN_ID, GAIN_NAME, -48.0f, 0.0f, -15.0f) })
 #endif
 {
 }
 
 GainTutorial1AudioProcessor::~GainTutorial1AudioProcessor()
 {
+    
 }
 
 //==============================================================================
@@ -148,7 +150,8 @@ void GainTutorial1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
         for (int sample = 0; sample < buffer.getNumSamples(); sample++)
         {
-            channelData[sample] = buffer.getSample(channel, sample) * rawVolume;
+            //channelData[sample] = buffer.getSample(channel, sample) * rawVolume;
+            channelData[sample] = buffer.getSample(channel, sample) * (pow (10, rawVolume / 20));
         }
     }
 }
