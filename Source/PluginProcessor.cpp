@@ -25,6 +25,7 @@ GainTutorial1AudioProcessor::GainTutorial1AudioProcessor()
 treeState(*this, nullptr, "PARAMETERS", { std::make_unique<juce::AudioParameterFloat>(GAIN_ID, GAIN_NAME, -48.0f, 0.0f, -15.0f) })
 #endif
 {
+    treeState.state = juce::ValueTree("savedParams");
 }
 
 GainTutorial1AudioProcessor::~GainTutorial1AudioProcessor()
@@ -173,12 +174,25 @@ void GainTutorial1AudioProcessor::getStateInformation (juce::MemoryBlock& destDa
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    //juce::ScopedPointer <juce::XmlElement> xml (treeState.state.createXml());
+    
+    std::unique_ptr<juce::XmlElement> xml (treeState.state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void GainTutorial1AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    
+    std::unique_ptr<juce::XmlElement> theParams (getXmlFromBinary(data, sizeInBytes));
+    if (theParams != nullptr)
+    {
+        if (theParams -> hasTagName(treeState.state.getType()))
+        {
+            treeState.state = juce::ValueTree::fromXml(*theParams);
+        }
+    }
 }
 
 //==============================================================================
