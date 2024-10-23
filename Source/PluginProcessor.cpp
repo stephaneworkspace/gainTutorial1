@@ -100,6 +100,8 @@ void GainTutorial1AudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    previousGain = pow(10, *treeState.getRawParameterValue(GAIN_ID) / 20);
 }
 
 void GainTutorial1AudioProcessor::releaseResources()
@@ -139,13 +141,26 @@ void GainTutorial1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    
+    float currentGain = pow(10, *treeState.getRawParameterValue(GAIN_ID) / 20);
 
     // rawVolume = 0.015;
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    if (currentGain == previousGain)
+    {
+        buffer.applyGain((currentGain));
+    }
+    else
+    {
+        buffer.applyGainRamp(0, buffer.getNumSamples(), previousGain, currentGain);
+        previousGain = currentGain;
+    }
 
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    // Click on this, solve = Ramp !
+    /*for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
 
@@ -154,7 +169,7 @@ void GainTutorial1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             //channelData[sample] = buffer.getSample(channel, sample) * rawVolume;
             channelData[sample] = buffer.getSample(channel, sample) * (pow (10, rawVolume / 20));
         }
-    }
+    }*/
 }
 
 //==============================================================================
